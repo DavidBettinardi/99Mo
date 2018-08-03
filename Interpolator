@@ -1,0 +1,24 @@
+#!/bin/env python2.7
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.interpolate import interp1d
+import numpy as np
+
+data = pd.read_csv('P:\Desktop/Python/known_MoHCl.csv', header=None)
+
+x= data.iloc[:, 0]
+y= data.iloc[:, 1]
+
+xnew = np.linspace(210, 370, num=801, endpoint=True)
+
+f = interp1d(x, y, kind='cubic')
+
+ynew = f(xnew)
+
+plt.plot(x, y, 'o', xnew, ynew, '--')
+plt.legend(['data', 'cubic'], loc='best')
+plt.show()
+
+data = [xnew,ynew]
+
+np.savetxt('P:Desktop\Python/interpolated_vals_MoHCl.txt', data)

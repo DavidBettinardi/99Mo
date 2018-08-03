@@ -1,0 +1,28 @@
+#!/bin/env python2.7
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.interpolate import interp1d
+import numpy as np
+
+df = pd.read_csv('P:\Desktop/Data.csv',header=None)
+
+df.dropna(how='any', inplace=True)
+x= df.iloc[:, 0]
+data = np.zeros((22,161))
+
+for i in xrange(20):
+    y = df.iloc[:,i+1]
+    #f = interp1d(x, y)
+    f2 = interp1d(x, y, kind='cubic')
+    data[[i+1]]=y
+
+xnew = np.linspace(210, 370, num=800, endpoint=True)
+data[[0]] = xnew
+np.savetxt('interpolated_vals.txt', data)
+
+
+#plt.plot(x, y, 'o', xnew, f(xnew), '-', xnew, f2(xnew), '--')
+#plt.legend(['data', 'linear', 'cubic'], loc='best')
+plt.plot(x, y, 'o', xnew, f2(xnew), '--')
+plt.legend(['data', 'cubic'], loc='best')
+plt.show()
