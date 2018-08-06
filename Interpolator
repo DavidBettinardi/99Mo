@@ -4,7 +4,7 @@ import pandas as pd
 from scipy.interpolate import interp1d
 import numpy as np
 
-data = pd.read_csv('P:\Desktop/Python/known_MoHCl.csv', header=None)
+data = pd.read_csv('P:\Desktop/Python/known_MoH2Cl2.csv', header=None)
 
 x= data.iloc[:, 0]
 y= data.iloc[:, 1]
@@ -21,4 +21,4 @@ plt.show()
 
 data = [xnew,ynew]
 
-np.savetxt('P:Desktop\Python/interpolated_vals_MoHCl.txt', data)
+np.savetxt('P:Desktop\Python/known_MoH2Cl2.txt', zip(*data))
