@@ -1,0 +1,88 @@
+#!/bin/env python2.7
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.interpolate import interp1d
+import numpy as np
+
+
+# Input and plot the HypSpec calculated molar absorptivities (epsilons)
+eps = pd.read_csv('P:\Desktop/epsilons/abs.csv')
+x= eps.iloc[:, 0]  # x value is wavelength
+eps = eps.set_index('wavelength (nm)')
+
+species1 = ['Mo', 'MoH2Cl2', 'MoH2Cl3', 'MoH', 'MoHCl']
+
+for i in xrange(5):   # plot all columns
+    plt.plot(x, eps.iloc[:, i]*0.0001*0.1, '--')
+
+plt.xlabel('wavelength (nm)')
+plt.ylabel('molar absorptivity (M-1 cm-1)')
+plt.legend([list(eps)[i] for i in xrange(5)], loc='best')  #label with headers
+plt.show()
+
+
+# Input and plot the HypSpec calculated species concentrations
+data2 = pd.read_csv('P:\Desktop/epsilons/conc.csv')
+HCl_activity = np.log(data2['Total(Cl)'])  # x value is [HCl] which is proportional to log(H)
+concentration = 0.0001 # must divide concentration by total to receive %
+species2 = ['Free(Mo)', 'MoH2Cl2', 'MoH2Cl3', 'MoH', 'MoHCl']
+
+for i in range(len(species2)):
+    plt.plot(HCl_activity, data2[species2[i]]/concentration, '-o')
+
+
+plt.xlabel('log({HCl})')
+plt.ylabel('Percent abundance (%)')
+plt.legend(species2, loc='best')
+plt.show()
+
+
+# Calculate the UV-vis spectrum from the conc and epsilons
+concentration = 0.0163    # Molar (mol/L) same as (mol/dm^3)
+path_length = 0.1   # !!!! millimeters !!!!
+
+def spec():
+    act = float(data2.iloc[0,1])
+
+for j in xrange(10,20): # for the second half of all spectra
+    abs = 0
+    for i in xrange(5): # find abs by taking summation of vals for all species
+        abs = abs + (eps[species1[i]]*float(data2[species2[i]][j]))*100*path_length*10*concentration
+    plt.plot(x, abs)
+
+plt.title('Backcalculated Abs, High Mo')
+plt.xlabel('wavelength (nm)')
+plt.ylabel('Abs')
+plt.show()
+
+
+
+
+
+
+
+
+# Input and plot the HypSpec calculated spectral intensities
+data2b =  pd.read_csv('P:\Desktop/epsilons/intensities.csv')
+xx = data2b.iloc[:, 0]  # x value is wavelength
+data2b = data2b.set_index('wavelength(nm)')
+
+
+# Interpolate the calculated species to match epsilon datapoints
+number_of_datapoints = len(data1.iloc[:,0])
+xnew = np.linspace(float(x[0]), float(HCl_activity[len(x)-1]), num=number_of_datapoints, endpoint=True)
+color1 = ['bo', 'go', 'ro', 'co', 'mo']
+color2 = ['b--', 'g--', 'r--', 'c--', 'm--']
+data3=[[]]*len(species)
+
+for i in range(len(species)):
+    f = interp1d(HCl_activity, data2[species[i]]/total, kind='cubic')
+    ynew = f(xnew)
+    data3[i] = ynew
+    plt.plot(HCl_activity, data2[species[i]]/total, color1[i], xnew, ynew, color2[i])
+
+plt.legend(['data', 'cubic interpolation'], loc='best')
+plt.show()
+
+
+# Calculate the expected UV-vis spectrum from the conc & epsilons
