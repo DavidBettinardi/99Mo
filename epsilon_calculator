@@ -6,29 +6,32 @@ import numpy as np
 
 
 # Input and plot the HypSpec calculated molar absorptivities (epsilons)
-eps = pd.read_csv('P:\Desktop/epsilons/abs.csv')
+eps = pd.read_csv('P:\Desktop/epsilons/eps_new.csv')
 x= eps.iloc[:, 0]  # x value is wavelength
 eps = eps.set_index('wavelength (nm)')
 
 species1 = ['Mo', 'MoH2Cl2', 'MoH2Cl3', 'MoH', 'MoHCl']
 
 for i in xrange(5):   # plot all columns
-    plt.plot(x, eps.iloc[:, i]*0.0001*0.1, '--')
+    plt.plot(x, eps.iloc[:, i], '--')
 
 plt.xlabel('wavelength (nm)')
 plt.ylabel('molar absorptivity (M-1 cm-1)')
-plt.legend([list(eps)[i] for i in xrange(5)], loc='best')  #label with headers
+plt.legend([list(eps)[i] for i in xrange(len(eps))], loc='best')  #label with headers
 plt.show()
 
 
 # Input and plot the HypSpec calculated species concentrations
-data2 = pd.read_csv('P:\Desktop/epsilons/conc.csv')
-HCl_activity = np.log(data2['Total(Cl)'])  # x value is [HCl] which is proportional to log(H)
-concentration = 0.0001 # must divide concentration by total to receive %
+conc = pd.read_csv('P:\Desktop/epsilons/conc_new.csv')
+conc.dropna(how='all', inplace=True)
+conc.dropna(how='all', inplace=True, axis='columns')
+
+HCl_activity = np.log(conc['Total(Cl)'])  # x value is [HCl] which is proportional to log(H)
+concentration = 0.0001  # must divide concentration by total to receive %
 species2 = ['Free(Mo)', 'MoH2Cl2', 'MoH2Cl3', 'MoH', 'MoHCl']
 
 for i in range(len(species2)):
-    plt.plot(HCl_activity, data2[species2[i]]/concentration, '-o')
+    plt.plot(HCl_activity, conc[species2[i]]/concentration, '-o')
 
 
 plt.xlabel('log({HCl})')
@@ -37,29 +40,38 @@ plt.legend(species2, loc='best')
 plt.show()
 
 
-# Calculate the UV-vis spectrum from the conc and epsilons
-concentration = 0.0163    # Molar (mol/L) same as (mol/dm^3)
-path_length = 0.1   # !!!! millimeters !!!!
+# Calculate the UV-vis spectra from the conc and epsilons
+concentration = 0.01   # Molar (mol/L) same as (mol/dm^3)
+path_length = 0.01   # !!!! centimeters !!!!
+spectrum = 20   # choose spectrum 1-20
 
-def spec():
-    act = float(data2.iloc[0,1])
-
-for j in xrange(10,20): # for the second half of all spectra
+for j in xrange(0, 19): # for the second half of all spectra
     abs = 0
-    for i in xrange(5): # find abs by taking summation of vals for all species
-        abs = abs + (eps[species1[i]]*float(data2[species2[i]][j]))*100*path_length*10*concentration
-    plt.plot(x, abs)
+    abs_Mo = (eps[species1[0]]*(float(conc[species2[0]][j])/concentration))*(path_length)
+    abs_MoH2Cl2 = (eps[species1[1]]*(float(conc[species2[1]][j])/concentration))*(path_length)
+    abs_MoH2Cl3 = (eps[species1[2]]*(float(conc[species2[2]][j])/concentration))*(path_length)
+    abs_MoH = (eps[species1[3]]*(float(conc[species2[3]][j])/concentration))*(path_length)
+    abs_MoHCl = (eps[species1[4]]*(float(conc[species2[4]][j])/concentration))*(path_length)
+    abs = abs_Mo + abs_MoH2Cl2 + abs_MoH2Cl3 + abs_MoH + abs_MoHCl
+    plt.plot(x, abs_Mo, ':', x, abs_MoH2Cl2, ":", x, abs_MoH2Cl3, ':', x, abs_MoH, ':', x, abs_MoHCl,':', x, abs)
 
 plt.title('Backcalculated Abs, High Mo')
-plt.xlabel('wavelength (nm)')
-plt.ylabel('Abs')
+plt.legend(species1, loc='best')
 plt.show()
 
 
+# Import and plot raw 20mM Mo data for comparison to simulation
+raw = pd.read_csv('P:\Desktop/epsilons/high_raw.csv')
+x_raw= raw.iloc[:, 0]  # x value is wavelength
+raw = raw.set_index('Unnamed: 0')
+conc_times_path = 0.02/10
 
+for i in xrange(len(list(raw))):   # plot all columns
+    plt.plot(x_raw, raw.iloc[:, i], '-')
 
-
-
+plt.xlabel('wavelength (nm)')
+plt.ylabel('Abs')
+plt.show()
 
 
 # Input and plot the HypSpec calculated spectral intensities
@@ -83,6 +95,3 @@ for i in range(len(species)):
 
 plt.legend(['data', 'cubic interpolation'], loc='best')
 plt.show()
-
-
-# Calculate the expected UV-vis spectrum from the conc & epsilons
